@@ -5,7 +5,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
   pull_request:
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
 
 env:
   DOTNET_VERSION: "9.x"
@@ -13,6 +19,7 @@ env:
 jobs:
   build-backend:
     runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'backend') || github.event_name == 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v4
@@ -31,16 +38,18 @@ jobs:
       - name: Test
         run: dotnet test backend/app.sln --configuration Release --no-restore --no-build
 
-      # Only publish on push to main, never on pull_request
       - name: Publish
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: dotnet publish backend/app.sln --configuration Release --no-restore --no-build
 
   build-frontend:
     runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'frontend') || github.event_name == 'workflow_dispatch'
+
     defaults:
       run:
         working-directory: frontend/app
+
     steps:
       - uses: actions/checkout@v4
 
