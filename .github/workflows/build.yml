@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
 
 env:
   DOTNET_VERSION: "9.x"
@@ -30,7 +31,9 @@ jobs:
       - name: Test
         run: dotnet test backend/app.sln --configuration Release --no-restore --no-build
 
+      # Only publish on push to main, never on pull_request
       - name: Publish
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: dotnet publish backend/app.sln --configuration Release --no-restore --no-build
 
   build-frontend:
