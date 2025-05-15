@@ -22,7 +22,13 @@ public class GetProductsQueryHandler : IQueryHandler<GetProductsQuery, IEnumerab
     public async Task<Result<IEnumerable<ProductResponse>>> Handle(GetProductsQuery query, CancellationToken cancellationToken)
     {
         var products = await _repository.GetAllAsync();
-        var dtos = products.Select(p => new ProductResponse { Id = p.Id, Name = p.Name });
+        var dtos = products.Select(p => new ProductResponse {
+            Id = p.Id,
+            Name = p.Name,
+            Description = p.Description,
+            Price = p.Price,
+            Stock = p.Stock
+        });
         return Result<IEnumerable<ProductResponse>>.Success(dtos);
     }
 }
