@@ -1,5 +1,6 @@
 using System.Reflection;
 using Application.Dependencies;
+using DotNetEnv;
 using HealthChecks.UI.Client;
 using Infrastructure.Dependencies;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -7,9 +8,21 @@ using Presentation.Dependencies;
 using Presentation.Extensions;
 using Serilog;
 
+Log.Logger = new LoggerConfiguration()
+    .Enrich.FromLogContext()
+    .Enrich.WithThreadId()
+    .Enrich.WithMachineName()
+    .WriteTo.Console(
+        outputTemplate:
+        "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File("logs/log.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
+
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog((context, loggerConfig) => loggerConfig.ReadFrom.Configuration(context.Configuration));
+Env.Load();
+
+builder.Host.UseSerilog();
 
 builder.Services.AddSwaggerGen();
 
@@ -38,7 +51,7 @@ app.UseRequestContextLogging();
 
 app.UseSerilogRequestLogging();
 
-app.UseExceptionHandler();
+app.UseGlobalExceptionHandling();
 
 await app.RunAsync();
 
