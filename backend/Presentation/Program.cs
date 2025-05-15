@@ -1,5 +1,6 @@
 using System.Reflection;
 using Application.Dependencies;
+using Asp.Versioning;
 using DotNetEnv;
 using HealthChecks.UI.Client;
 using Infrastructure.Dependencies;
@@ -32,6 +33,16 @@ builder.Services
     .AddInfrastructureModule(builder.Configuration);
 
 builder.Services.AddEndpoints(Assembly.GetExecutingAssembly());
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = new UrlSegmentApiVersionReader();
+});
+
+builder.Services.AddEndpointsApiExplorer();
 
 var app = builder.Build();
 
