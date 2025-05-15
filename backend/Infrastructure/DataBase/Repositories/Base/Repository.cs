@@ -6,7 +6,7 @@ namespace Infrastructure.DataBase.Repositories.Base
     public class Repository<T> : IRepository<T> where T : class
     {
         protected readonly DbContext Context;
-        private readonly DbSet<T> _dbSet;
+        protected readonly DbSet<T> DbSet;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Repository{T}"/> class.
@@ -15,7 +15,7 @@ namespace Infrastructure.DataBase.Repositories.Base
         public Repository(DbContext context)
         {
             Context = context;
-            _dbSet = context.Set<T>();
+            DbSet = context.Set<T>();
         }
 
         /// <summary>
@@ -23,13 +23,13 @@ namespace Infrastructure.DataBase.Repositories.Base
         /// </summary>
         /// <param name="id">The entity primary key.</param>
         /// <returns>The entity if found; otherwise, throws InvalidOperationException.</returns>
-        public async Task<T> GetByIdAsync(object id) => await _dbSet.FindAsync(id) ?? throw new InvalidOperationException();
+        public async Task<T> GetByIdAsync(object id) => await DbSet.FindAsync(id) ?? throw new InvalidOperationException();
 
         /// <summary>
         /// Gets all entities asynchronously.
         /// </summary>
         /// <returns>A list of all entities.</returns>
-        public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
+        public async Task<IEnumerable<T>> GetAllAsync() => await DbSet.ToListAsync();
 
         /// <summary>
         /// Finds entities matching the given predicate asynchronously.
@@ -37,24 +37,24 @@ namespace Infrastructure.DataBase.Repositories.Base
         /// <param name="predicate">The filter expression.</param>
         /// <returns>A list of matching entities.</returns>
         public async Task<IEnumerable<T>> FindAsync(Expression<System.Func<T, bool>> predicate)
-            => await Task.FromResult(_dbSet.Where(predicate));
+            => await Task.FromResult(DbSet.Where(predicate));
 
         /// <summary>
         /// Adds a new entity asynchronously.
         /// </summary>
         /// <param name="entity">The entity to add.</param>
-        public async Task AddAsync(T entity) => await _dbSet.AddAsync(entity);
+        public async Task AddAsync(T entity) => await DbSet.AddAsync(entity);
 
         /// <summary>
         /// Updates an existing entity.
         /// </summary>
         /// <param name="entity">The entity to update.</param>
-        public void Update(T entity) => _dbSet.Update(entity);
+        public void Update(T entity) => DbSet.Update(entity);
 
         /// <summary>
         /// Removes an entity.
         /// </summary>
         /// <param name="entity">The entity to remove.</param>
-        public void Remove(T entity) => _dbSet.Remove(entity);
+        public void Remove(T entity) => DbSet.Remove(entity);
     }
 }

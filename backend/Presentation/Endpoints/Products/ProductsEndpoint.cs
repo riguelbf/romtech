@@ -1,6 +1,7 @@
 using Application.Products.Queries;
 using Application.Products.Queries.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using SharedKernel.Queries;
 
 namespace Presentation.Endpoints.Products;
 
@@ -14,7 +15,7 @@ public class ProductsEndpoint : IEndpoint
     {
         app.MapGet("/api/products", async (
             [AsParameters] GetProductsQuery query,
-            [FromServices] IQueryHandler<GetProductsQuery, IEnumerable<ProductResponse>> handler) =>
+            [FromServices] IQueryHandler<GetProductsQuery, PagedResult<ProductResponse>> handler) =>
         {
             var result = await handler.Handle(query, CancellationToken.None);
             return result.IsSuccess ? Results. Ok(result.Value) : Results.Problem(result.Error);

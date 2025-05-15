@@ -1,3 +1,4 @@
+using Application.Products.Queries.Dtos;
 using SharedKernel;
 
 namespace Application.Products.Queries;
