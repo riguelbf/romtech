@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
-using System;
 using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Dependencies;
@@ -16,8 +15,8 @@ public static class InfrastructureModule
         IConfiguration configuration) =>
         services
             .AddDatabase()
-            .AddRepositories(configuration)
-            .AddHealthChecks(configuration);
+            .AddRepositories()
+            .AddHealthsChecks();
     
 
     private static IServiceCollection AddDatabase(this IServiceCollection services)
@@ -36,7 +35,7 @@ public static class InfrastructureModule
         return services;
     }
 
-    private static IServiceCollection AddRepositories(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IProductRepository, ProductRepository>();
@@ -44,8 +43,8 @@ public static class InfrastructureModule
         return services;
     }
 
-    
-    private static IServiceCollection AddHealthChecks(this IServiceCollection services, IConfiguration configuration)
+
+    private static IServiceCollection AddHealthsChecks(this IServiceCollection services)
     {
         services
             .AddHealthChecks();
