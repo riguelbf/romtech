@@ -1,4 +1,4 @@
-namespace Infrastructure.Repositories.Base
+namespace Infrastructure.DataBase.Repositories.Base
 {
     public interface IUnitOfWork : IDisposable
     {
