@@ -1,15 +1,25 @@
 {
   "name": "fullstack-monorepo",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "dev",
   "build": {
     "dockerfile": "Dockerfile"
   },
   "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "onCreateCommand": "code /workspace/romtech.code-workspace || true",
   "customizations": {
     "vscode": {
       "settings": {},
-      "extensions": []
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-azuretools.vscode-docker",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint"
+      ]
     }
   },
-  "forwardPorts": [5173, 5000],
-  "postCreateCommand": "dotnet restore backend && npm install --prefix frontend"
+  "forwardPorts": [5173, 5000, 5001, 5432, 6379],
+  "postCreateCommand": "dotnet restore backend && pnpm install --prefix frontend/app",
+  "postStartCommand": "echo 'Devcontainer started with .NET, Node, PostgreSQL, and Redis'"
 }
