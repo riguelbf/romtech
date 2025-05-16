@@ -2,7 +2,7 @@ using Application.Products.Queries.Dtos;
 using Infrastructure.DataBase.Repositories.Products;
 using SharedKernel;
 
-namespace Application.Products.Queries;
+namespace Application.Products.Queries.Handlers;
 
 public class GetProductByIdQueryHandler(IProductRepository repository)
     : IQueryHandler<GetProductByIdQuery, ProductResponse>

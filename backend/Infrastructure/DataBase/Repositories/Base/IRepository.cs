@@ -8,8 +8,9 @@ namespace Infrastructure.DataBase.Repositories.Base
         /// Gets an entity by its primary key asynchronously.
         /// </summary>
         /// <param name="id">The entity primary key.</param>
+        /// <param name="cancellationToken"></param>
         /// <returns>The entity if found.</returns>
-        Task<T> GetByIdAsync(object id);
+        Task<T?> GetByIdAsync(object id, CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets all entities asynchronously.

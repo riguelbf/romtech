@@ -1,4 +1,5 @@
 using Application.Products.Commands;
+using Application.Products.Commands.Handlers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application.Dependencies;
@@ -48,6 +49,7 @@ public static class ApplicationModule
         services.AddScoped<CreateProductHandler>();
         services.AddScoped<UpdateProductCommandHandler>();
         services.AddScoped<DeleteProductCommandHandler>();
+        services.AddScoped<AddStockCommandHandler>();
         
         return services;
     }

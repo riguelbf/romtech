@@ -22,8 +22,9 @@ namespace Infrastructure.DataBase.Repositories.Base
         /// Gets an entity by its primary key asynchronously.
         /// </summary>
         /// <param name="id">The entity primary key.</param>
+        /// <param name="cancellationToken"></param>
         /// <returns>The entity if found; otherwise, throws InvalidOperationException.</returns>
-        public async Task<T> GetByIdAsync(object id) => await DbSet.FindAsync(id) ?? throw new InvalidOperationException();
+        public async Task<T?> GetByIdAsync(object id, CancellationToken cancellationToken) => await DbSet.FindAsync(id, cancellationToken) ?? throw new InvalidOperationException();
 
         /// <summary>
         /// Gets all entities asynchronously.

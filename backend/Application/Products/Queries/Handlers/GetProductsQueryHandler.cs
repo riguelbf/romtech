@@ -3,17 +3,11 @@ using Infrastructure.DataBase.Repositories.Products;
 using SharedKernel;
 using SharedKernel.Queries;
 
-namespace Application.Products.Queries;
+namespace Application.Products.Queries.Handlers;
 
-public class GetProductsQueryHandler : IQueryHandler<GetProductsQuery, PagedResult<ProductResponse>>
+public class GetProductsQueryHandler(IProductRepository repository)
+    : IQueryHandler<GetProductsQuery, PagedResult<ProductResponse>>
 {
-    private readonly IProductRepository _repository;
-
-    public GetProductsQueryHandler(IProductRepository repository)
-    {
-        _repository = repository;
-    }
-
     /// <summary>
     /// Handles a query for retrieving all products.
     /// </summary>>
@@ -23,7 +17,7 @@ public class GetProductsQueryHandler : IQueryHandler<GetProductsQuery, PagedResu
     public async Task<Result<PagedResult<ProductResponse>>> Handle(GetProductsQuery query,
         CancellationToken cancellationToken)
     {
-        var (products, totalCount) = await _repository.GetPagedAsync(query.PageNumber!.Value, query.PageSize!.Value);
+        var (products, totalCount) = await repository.GetPagedAsync(query.PageNumber!.Value, query.PageSize!.Value);
         
         var responseItems = products.Select(p => new ProductResponse {
             Id = p.Id,

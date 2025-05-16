@@ -248,5 +248,59 @@ namespace UnitTests.Products
             var response = await _client.DeleteAsync("/api/v1/products/999999");
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
+
+        [Fact]
+        public async Task AddStock_ReturnsNoContent_OnValidRequest()
+        {
+            // Arrange: create product
+            var createRequest = new CreateProductCommand
+            {
+                Name = "StockTest",
+                Description = "For stock add test",
+                Price = 10.0m,
+                Stock = 5
+            };
+            var createResponse = await _client.PostAsJsonAsync("/api/v1/products", createRequest);
+            var content = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+            var productId = content.GetProperty("id").GetInt32();
+
+            // Act: add stock
+            var addStockRequest = new AddStockCommand { Quantity = 3 };
+            var stockResponse = await _client.PostAsJsonAsync($"/api/v1/products/{productId}/stock", addStockRequest);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NoContent, stockResponse.StatusCode);
+        }
+
+        [Fact]
+        public async Task AddStock_ReturnsBadRequest_OnInvalidQuantity()
+        {
+            // Arrange: create product
+            var createRequest = new CreateProductCommand
+            {
+                Name = "StockTestInvalid",
+                Description = "For stock add test",
+                Price = 10.0m,
+                Stock = 5
+            };
+            var createResponse = await _client.PostAsJsonAsync("/api/v1/products", createRequest);
+            var content = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+            var productId = content.GetProperty("id").GetInt32();
+
+            // Act: add invalid stock
+            var addStockRequest = new AddStockCommand { Quantity = 0 };
+            var stockResponse = await _client.PostAsJsonAsync($"/api/v1/products/{productId}/stock", addStockRequest);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, stockResponse.StatusCode);
+        }
+
+        [Fact]
+        public async Task AddStock_ReturnsNotFound_WhenProductDoesNotExist()
+        {
+            var addStockRequest = new AddStockCommand { Quantity = 2 };
+            var stockResponse = await _client.PostAsJsonAsync($"/api/v1/products/999999/stock", addStockRequest);
+            Assert.Equal(HttpStatusCode.NotFound, stockResponse.StatusCode);
+        }
     }
 }

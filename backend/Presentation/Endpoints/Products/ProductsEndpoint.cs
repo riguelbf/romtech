@@ -1,4 +1,5 @@
 using Application.Products.Commands;
+using Application.Products.Commands.Handlers;
 using Application.Products.Queries;
 using Application.Products.Queries.Dtos;
 using FluentValidation;
@@ -140,6 +141,28 @@ public class ProductsEndpoint : IEndpoint
         .WithSummary("Soft delete a product by ID.")
         .WithDescription("Soft-deletes a product by setting its IsDeleted flag to true. Returns 204 if successful, 404 if not found or already deleted.")
         .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound);
+
+        app.MapPost("/api/v{version:apiVersion}/products/{id:int}/stock", async (
+            int id,
+            [FromBody] AddStockCommand command,
+            [FromServices] AddStockCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            command.Id = id;
+
+            var result = await handler.Handle(command, cancellationToken);
+            
+            if (result.IsSuccess) return Results.NoContent();
+            
+            return result.Error == "Product not found" ? Results.NotFound() : Results.BadRequest(result.Error);
+        })
+        .WithName("AddProductStock")
+        .WithTags("Products")
+        .WithSummary("Add stock to an existing product.")
+        .WithDescription("Increments the stock of a product by the specified quantity.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status404NotFound);
     }
 }
