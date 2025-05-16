@@ -89,7 +89,10 @@ dotnet build
 cd Presentation
 ASPNETCORE_ENVIRONMENT=Development dotnet run
 ```
-The API will be available at `http://localhost:5000` (or the configured port).
+The API will be available at `http://localhost:5179` (or the configured port).
+
+Open API Documentation is available at:
+http://localhost:5179/swagger/index.html
 
 ### 4. Run Tests
 ```
