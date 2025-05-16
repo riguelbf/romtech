@@ -19,6 +19,8 @@ public static class PresentationModule
     private static IServiceCollection AddValidators(this IServiceCollection services)
     {
         services.AddValidatorsFromAssemblyContaining<GetProductsQueryValidator>();
+        services.AddValidatorsFromAssemblyContaining<GetProductByIdQueryValidator>();
+
         return services;
     }
 }

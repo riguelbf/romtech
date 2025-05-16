@@ -45,5 +45,29 @@ public class ProductsEndpoint : IEndpoint
             operation.Responses["500"].Description = "Internal server error.";
             return operation;
         });
+
+        app.MapGet("/api/v{version:apiVersion}/products/{id:int}", async (
+            int id,
+            [FromServices] IValidator<GetProductByIdQuery> validator,
+            [FromServices] IQueryHandler<GetProductByIdQuery, ProductResponse> handler) =>
+        {
+            var query = new GetProductByIdQuery(id);
+            var validationResult = await validator.ValidateAsync(query);
+            if (!validationResult.IsValid)
+            {
+                return Results.BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
+            }
+
+            var result = await handler.Handle(query, CancellationToken.None);
+            return !result.IsSuccess ? Results.NotFound(result.Error) : Results.Ok(result.Value);
+        })
+        .WithName("GetProductById")
+        .WithTags("Products")
+        .WithSummary("Retrieve details of a specific product by ID.")
+        .WithDescription("Gets details of a product from the catalog by its ID.")
+        .Produces<ProductResponse>(StatusCodes.Status200OK, "application/json")
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status500InternalServerError);
     }
 }
