@@ -23,7 +23,7 @@ public class GetProductsQueryHandler : IQueryHandler<GetProductsQuery, PagedResu
     public async Task<Result<PagedResult<ProductResponse>>> Handle(GetProductsQuery query,
         CancellationToken cancellationToken)
     {
-        var (products, totalCount) = await _repository.GetPagedAsync(query.PageNumber, query.PageSize);
+        var (products, totalCount) = await _repository.GetPagedAsync(query.PageNumber!.Value, query.PageSize!.Value);
         
         var responseItems = products.Select(p => new ProductResponse {
             Id = p.Id,
@@ -35,8 +35,8 @@ public class GetProductsQueryHandler : IQueryHandler<GetProductsQuery, PagedResu
 
         var response = new PagedResult<ProductResponse>()
         {
-            PageSize = query.PageSize,
-            PageNumber = query.PageNumber,
+            PageSize = query.PageSize.Value,
+            PageNumber = query.PageNumber.Value,
             TotalCount = totalCount,
             Items = responseItems
         };

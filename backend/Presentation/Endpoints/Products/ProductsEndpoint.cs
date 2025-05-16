@@ -1,5 +1,6 @@
 using Application.Products.Queries;
 using Application.Products.Queries.Dtos;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.Queries;
 
@@ -14,9 +15,18 @@ public class ProductsEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/api/v{version:apiVersion}/products", async (
-            [AsParameters] GetProductsQuery query,
-            [FromServices] IQueryHandler<GetProductsQuery, PagedResult<ProductResponse>> handler) =>
+                [AsParameters] GetProductsQuery query,
+                [FromServices] IValidator<GetProductsQuery> validator,
+                [FromServices] IQueryHandler<GetProductsQuery, PagedResult<ProductResponse>> handler) =>
         {
+            query.Normalize();
+
+            var validationResult = await validator.ValidateAsync(query);
+            if (!validationResult.IsValid)
+            {
+                return Results.BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
+            }
+
             var result = await handler.Handle(query, CancellationToken.None);
             return result.IsSuccess ? Results.Ok(result.Value) : Results.Problem(result.Error);
         })
