@@ -73,6 +73,20 @@ namespace UnitTests.Products
                         createProductMock.Handle(Arg.Any<CreateProductCommand>(), Arg.Any<CancellationToken>())
                             .Returns(Task.FromResult(Result<int>.Success(123)));
                         services.AddSingleton(createProductMock);
+
+                        // Mock UpdateProductCommand handler
+                        var updateProductDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(ICommandHandler<UpdateProductCommand, int>));
+                        if (updateProductDescriptor != null)
+                            services.Remove(updateProductDescriptor);
+
+                        var updateProductMock = Substitute.For<ICommandHandler<UpdateProductCommand, int>>();
+                        // Success for product id 1
+                        updateProductMock.Handle(Arg.Is<UpdateProductCommand>(c => c.Id == 1), Arg.Any<CancellationToken>())
+                            .Returns(Task.FromResult(Result<int>.Success(1)));
+                        // Not found for product id 99
+                        updateProductMock.Handle(Arg.Is<UpdateProductCommand>(c => c.Id == 99), Arg.Any<CancellationToken>())
+                            .Returns(Task.FromResult(Result<int>.Failure("Product 99 not found")));
+                        services.AddSingleton(updateProductMock);
                     });
                 });
             Client = Factory.CreateClient();
@@ -169,6 +183,40 @@ namespace UnitTests.Products
                 Stock = -5
             };
             var response = await _client.PostAsJsonAsync("/api/v1/products", request);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task UpdateProduct_ReturnsNoContent_WhenProductExists()
+        {
+            var updateCommand = new UpdateProductCommand()
+            {
+                Id = 1,
+                Name = "Updated Name",
+                Description = "Updated Desc",
+                Price = 99.99m,
+                Stock = 10
+            };
+
+            var response = await _client.PutAsJsonAsync("/api/v1/products/1", updateCommand);
+
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task UpdateProduct_ReturnsNotFound_WhenProductDoesNotExist()
+        {
+            var updateCommand = new UpdateProductCommand()
+            {
+                Id = 99,
+                Name = "Updated Name",
+                Description = "Updated Desc",
+                Price = 99.99m,
+                Stock = 10
+            };
+
+            var response = await _client.PutAsJsonAsync("/api/v1/products/1", updateCommand);
+
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }

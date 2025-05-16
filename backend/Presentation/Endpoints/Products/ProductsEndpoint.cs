@@ -88,10 +88,8 @@ public class ProductsEndpoint : IEndpoint
             }
 
             var result = await handler.Handle(command, cancellationToken);
-            if (!result.IsSuccess)
-                return Results.Problem(result.Error);
-
-            return Results.Created($"/api/v1/products/{result.Value}", new { id = result.Value });
+            
+            return !result.IsSuccess ? Results.Problem(result.Error) : Results.Created($"/api/v1/products/{result.Value}", new { id = result.Value });
         })
         .WithName("CreateProduct")
         .WithTags("Products")
@@ -100,5 +98,33 @@ public class ProductsEndpoint : IEndpoint
         .Produces(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status500InternalServerError);
+
+        app.MapPut("/api/v{version:apiVersion}/products/{id:int}", async (
+            int id,
+            [FromBody] UpdateProductCommand command,
+            [FromServices] IValidator<UpdateProductCommand> validator,
+            [FromServices] UpdateProductCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var validationResult = await validator.ValidateAsync(command, cancellationToken);
+            
+            if (!validationResult.IsValid)
+                return Results.BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
+            
+            if(id != command.Id) return Results.BadRequest("Id mismatch");
+
+            var result = await handler.Handle(command, cancellationToken);
+            
+            if (result.IsSuccess) return Results.NoContent();
+            
+            return result.Error == "Product not found" ? Results.NotFound(result.Error) : Results.BadRequest(result.Error);
+        })
+        .WithName("UpdateProduct")
+        .WithTags("Products")
+        .WithSummary("Update an existing product by ID.")
+        .WithDescription("Updates an existing product in the catalog by its ID.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status400BadRequest)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }

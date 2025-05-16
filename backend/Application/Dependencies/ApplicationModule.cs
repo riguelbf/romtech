@@ -46,6 +46,7 @@ public static class ApplicationModule
             .WithScopedLifetime());
         
         services.AddScoped<CreateProductHandler>();
+        services.AddScoped<UpdateProductCommandHandler>();
         
         return services;
     }
