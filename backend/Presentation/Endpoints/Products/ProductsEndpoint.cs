@@ -1,3 +1,4 @@
+using Application.Products.Commands;
 using Application.Products.Queries;
 using Application.Products.Queries.Dtos;
 using FluentValidation;
@@ -59,7 +60,11 @@ public class ProductsEndpoint : IEndpoint
             }
 
             var result = await handler.Handle(query, CancellationToken.None);
-            return !result.IsSuccess ? Results.NotFound(result.Error) : Results.Ok(result.Value);
+            
+            if (!result.IsSuccess || result.Value is null || result.Value.Id <= 0)
+                return Results.NotFound(result.Error ?? "Product not found");
+            
+            return Results.Ok(result.Value);
         })
         .WithName("GetProductById")
         .WithTags("Products")
@@ -68,6 +73,32 @@ public class ProductsEndpoint : IEndpoint
         .Produces<ProductResponse>(StatusCodes.Status200OK, "application/json")
         .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status404NotFound)
+        .Produces(StatusCodes.Status500InternalServerError);
+
+        app.MapPost("/api/v{version:apiVersion}/products", async (
+            [FromBody] CreateProductCommand command,
+            [FromServices] IValidator<CreateProductCommand> validator,
+            [FromServices] CreateProductHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var validationResult = await validator.ValidateAsync(command, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                return Results.BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
+            }
+
+            var result = await handler.Handle(command, cancellationToken);
+            if (!result.IsSuccess)
+                return Results.Problem(result.Error);
+
+            return Results.Created($"/api/v1/products/{result.Value}", new { id = result.Value });
+        })
+        .WithName("CreateProduct")
+        .WithTags("Products")
+        .WithSummary("Create a new product.")
+        .WithDescription("Adds a new product to the system.")
+        .Produces(StatusCodes.Status201Created)
+        .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status500InternalServerError);
     }
 }

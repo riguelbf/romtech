@@ -11,6 +11,7 @@ namespace Infrastructure.DataBase.Repositories.Products
     {
         Task<(List<Product> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<Product, bool>>? filter = null);
         Task<Product?> GetByIdAsync(int id);
+        Task AddAsync(Product product);
     }
 
     public class ProductRepository : Repository<Product>, IProductRepository
@@ -29,6 +30,12 @@ namespace Infrastructure.DataBase.Repositories.Products
         public async Task<Product?> GetByIdAsync(int id)
         {
             return await DbSet.FindAsync(id);
+        }
+
+        public async Task AddAsync(Product product)
+        {
+            await DbSet.AddAsync(product);
+            await Context.SaveChangesAsync();
         }
     }
 }
