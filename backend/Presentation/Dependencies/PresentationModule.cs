@@ -1,4 +1,5 @@
 using FluentValidation;
+using Presentation.Endpoints.Products;
 using Presentation.Endpoints.Products.Validators;
 
 namespace Presentation.Dependencies;
@@ -21,6 +22,7 @@ public static class PresentationModule
         services.AddValidatorsFromAssemblyContaining<GetProductsQueryValidator>();
         services.AddValidatorsFromAssemblyContaining<GetProductByIdQueryValidator>();
         services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>();
+        services.AddValidatorsFromAssemblyContaining<UpdateProductCommandtValidator>();
 
         return services;
     }

@@ -12,6 +12,7 @@ namespace Infrastructure.DataBase.Repositories.Products
         Task<(List<Product> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<Product, bool>>? filter = null);
         Task<Product?> GetByIdAsync(int id);
         Task AddAsync(Product product);
+        Task UpdateAsync(Product product, CancellationToken cancellationToken);
     }
 
     public class ProductRepository : Repository<Product>, IProductRepository
@@ -36,6 +37,12 @@ namespace Infrastructure.DataBase.Repositories.Products
         {
             await DbSet.AddAsync(product);
             await Context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(Product product, CancellationToken cancellationToken)
+        {
+            DbSet.Update(product);
+            await Context.SaveChangesAsync(cancellationToken);
         }
     }
 }
