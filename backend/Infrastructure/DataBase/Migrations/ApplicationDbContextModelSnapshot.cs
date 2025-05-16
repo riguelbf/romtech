@@ -47,6 +47,12 @@ namespace Infrastructure.backend.Infrastructure.DataBase.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("price");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea")
+                        .HasColumnName("row_version");
+
                     b.Property<int>("Stock")
                         .HasColumnType("integer")
                         .HasColumnName("stock");

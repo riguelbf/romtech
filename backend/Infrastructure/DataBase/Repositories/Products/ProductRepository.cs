@@ -62,16 +62,38 @@ namespace Infrastructure.DataBase.Repositories.Products
 
         public async Task<bool> AddStockAsync(int id, int quantity, CancellationToken cancellationToken)
         {
-            var product = await DbSet.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
-         
-            if (product == null)
-                return false;
-            
-            product.AddStock(quantity);
-            DbSet.Update(product);
-            
-            await Context.SaveChangesAsync(cancellationToken);
-            return true;
+            const int maxRetries = 3;
+            var retries = 0;
+            var delayMs = 100;
+
+            while (retries < maxRetries)
+            {
+                var product = await DbSet.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
+
+                if (product == null)
+                    return false;
+
+                product.AddStock(quantity);
+                DbSet.Update(product);
+
+                try
+                {
+                    await Context.SaveChangesAsync(cancellationToken);
+                    return true;
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    retries++;
+                    
+                    if (retries >= maxRetries)
+                        return false;
+                    
+                    await Task.Delay(delayMs, cancellationToken);
+                    delayMs *= 2;
+                    Context.Entry(product).State = EntityState.Detached;
+                }
+            }
+            return false;
         }
     }
 }
