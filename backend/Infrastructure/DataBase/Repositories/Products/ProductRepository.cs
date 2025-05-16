@@ -13,6 +13,7 @@ namespace Infrastructure.DataBase.Repositories.Products
         Task<Product?> GetByIdAsync(int id);
         Task AddAsync(Product product);
         Task UpdateAsync(Product product, CancellationToken cancellationToken);
+        Task<bool> SoftDeleteAsync(int id, CancellationToken cancellationToken);
     }
 
     public class ProductRepository : Repository<Product>, IProductRepository
@@ -22,7 +23,8 @@ namespace Infrastructure.DataBase.Repositories.Products
         public async Task<(List<Product> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize,
             Expression<Func<Product, bool>>? filter = null)
         {
-            var query = filter != null ? DbSet.Where(filter) : DbSet;
+            var baseFilter = (Expression<Func<Product, bool>>)(p => !p.IsDeleted);
+            var query = filter != null ? DbSet.Where(baseFilter).Where(filter) : DbSet.Where(baseFilter);
             var totalCount = await query.CountAsync();
             var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
             return (items, totalCount);
@@ -30,7 +32,7 @@ namespace Infrastructure.DataBase.Repositories.Products
 
         public async Task<Product?> GetByIdAsync(int id)
         {
-            return await DbSet.FindAsync(id);
+            return await DbSet.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
         }
 
         public async Task AddAsync(Product product)
@@ -43,6 +45,20 @@ namespace Infrastructure.DataBase.Repositories.Products
         {
             DbSet.Update(product);
             await Context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<bool> SoftDeleteAsync(int id, CancellationToken cancellationToken)
+        {
+            var product = await DbSet.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
+            
+            if (product == null)
+                return false;
+            
+            product.IsDeleted = true;
+            DbSet.Update(product);
+            
+            await Context.SaveChangesAsync(cancellationToken);
+            return true;
         }
     }
 }

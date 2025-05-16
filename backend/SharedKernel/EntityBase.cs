@@ -3,6 +3,8 @@ namespace SharedKernel;
 public abstract class EntityBase
 {
     private readonly List<IDomainEvent> _domainEvents = [];
+    
+    public bool IsDeleted { get; set; } = false;
 
     public List<IDomainEvent> DomainEvents => [.. _domainEvents];
 

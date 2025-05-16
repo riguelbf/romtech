@@ -219,5 +219,34 @@ namespace UnitTests.Products
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
+
+        [Fact]
+        public async Task DeleteProduct_ReturnsNoContent_WhenProductExists()
+        {
+            var createRequest = new CreateProductCommand
+            {
+                Name = "ToDelete",
+                Description = "Delete Me",
+                Price = 1.0m,
+                Stock = 1
+            };
+            var createResponse = await _client.PostAsJsonAsync("/api/v1/products", createRequest);
+            var content = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
+            var productId = content.GetProperty("id").GetInt32();
+
+            var deleteResponse = await _client.DeleteAsync($"/api/v1/products/{productId}");
+
+            Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
+
+            var getResponse = await _client.GetAsync($"/api/v1/products/{productId}");
+            Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
+        }
+
+        [Fact]
+        public async Task DeleteProduct_ReturnsNotFound_WhenProductDoesNotExistOrAlreadyDeleted()
+        {
+            var response = await _client.DeleteAsync("/api/v1/products/999999");
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
     }
 }
