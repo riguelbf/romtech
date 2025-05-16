@@ -128,7 +128,7 @@ public class ProductsEndpoint : IEndpoint
         .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status404NotFound);
 
-        app.MapDelete("/api/v{version:apiVersion}/products/{id:int}", async (
+        app.MapDelete($"/api/v{{version:apiVersion}}/products/{{id:int}}", async (
             int id,
             [FromServices] DeleteProductCommandHandler handler,
             CancellationToken cancellationToken) =>
@@ -143,26 +143,55 @@ public class ProductsEndpoint : IEndpoint
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound);
 
-        app.MapPost("/api/v{version:apiVersion}/products/{id:int}/stock", async (
-            int id,
-            [FromBody] AddStockCommand command,
-            [FromServices] AddStockCommandHandler handler,
-            CancellationToken cancellationToken) =>
-        {
-            command.Id = id;
+        app.MapPost($"/api/v{{version:apiVersion}}/products/{{id:int}}/stock", async (
+                int id,
+                [FromBody] AddStockCommand command,
+                [FromServices] AddStockCommandHandler handler,
+                CancellationToken cancellationToken) =>
+            {
+                command.Id = id;
 
-            var result = await handler.Handle(command, cancellationToken);
-            
-            if (result.IsSuccess) return Results.NoContent();
-            
-            return result.Error == "Product not found" ? Results.NotFound() : Results.BadRequest(result.Error);
-        })
-        .WithName("AddProductStock")
-        .WithTags("Products")
-        .WithSummary("Add stock to an existing product.")
-        .WithDescription("Increments the stock of a product by the specified quantity.")
-        .Produces(StatusCodes.Status204NoContent)
-        .Produces(StatusCodes.Status400BadRequest)
-        .Produces(StatusCodes.Status404NotFound);
+                var result = await handler.Handle(command, cancellationToken);
+
+                if (result.IsSuccess) return Results.NoContent();
+
+                return result.Error == "Product not found" ? Results.NotFound() : Results.BadRequest(result.Error);
+            })
+            .WithName("AddProductStock")
+            .WithTags("Products")
+            .WithSummary("Add stock to an existing product.")
+            .WithDescription("Increments the stock of a product by the specified quantity.")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status412PreconditionFailed);
+
+        app.MapDelete($"/api/v{{version:apiVersion}}/products/{{id:int}}/stock", async (
+                int id,
+                [FromBody] ReductionProductStockCommand command,
+                [FromServices] ReductionProductStockCommandHandler handler,
+                CancellationToken cancellationToken) =>
+            {
+                command.Id = id;
+                var result = await handler.Handle(command, cancellationToken);
+                
+                if (result.IsSuccess)
+                    return Results.NoContent();
+                
+                if (result.Error == $"Product {id} not found")
+                    return Results.NotFound($"Product {id} not found");
+                
+                return result.Error == "Concurrency conflict" 
+                    ? Results.StatusCode(StatusCodes.Status412PreconditionFailed) 
+                    : Results.Problem(result.Error);
+            })
+            .WithName("ReductionProductStock")
+            .WithTags("Products")
+            .WithSummary("Reduction of product stock")
+            .WithDescription("reduces the amount of stock of a given product if the stock does not become negative")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status412PreconditionFailed)
+            .Produces(StatusCodes.Status500InternalServerError);
     }
 }
