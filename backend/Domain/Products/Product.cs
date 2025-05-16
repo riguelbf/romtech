@@ -23,5 +23,16 @@ namespace Domain.Products
             
             Stock += quantity;
         }
+        
+        public void RemoveStock(int quantity)
+        {
+            if (quantity <= 0)
+                throw new ArgumentException("Quantity must be greater than zero.");
+            
+            if (Stock < quantity)
+                throw new ArgumentException("Not enough stock.");
+            
+            Stock -= quantity;
+        }
     }
 }

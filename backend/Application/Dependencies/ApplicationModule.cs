@@ -50,6 +50,7 @@ public static class ApplicationModule
         services.AddScoped<UpdateProductCommandHandler>();
         services.AddScoped<DeleteProductCommandHandler>();
         services.AddScoped<AddStockCommandHandler>();
+        services.AddScoped<ReductionProductStockCommandHandler>();
         
         return services;
     }

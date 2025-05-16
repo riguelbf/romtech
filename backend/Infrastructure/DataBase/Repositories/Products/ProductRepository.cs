@@ -15,6 +15,7 @@ namespace Infrastructure.DataBase.Repositories.Products
         Task UpdateAsync(Product product, CancellationToken cancellationToken);
         Task<bool> SoftDeleteAsync(int id, CancellationToken cancellationToken);
         Task<bool> AddStockAsync(int id, int quantity, CancellationToken cancellationToken);
+        Task<bool> RemoveStockAsync(int id, int quantity, CancellationToken cancellationToken);
     }
 
     public class ProductRepository(ApplicationDbContext context) : Repository<Product>(context), IProductRepository
@@ -62,6 +63,16 @@ namespace Infrastructure.DataBase.Repositories.Products
 
         public async Task<bool> AddStockAsync(int id, int quantity, CancellationToken cancellationToken)
         {
+            return await HandleStockWithRetries(id, quantity, (product, qty) => { product.AddStock(qty); }, cancellationToken);
+        }
+
+        public async Task<bool> RemoveStockAsync(int id, int quantity, CancellationToken cancellationToken)
+        {
+            return await HandleStockWithRetries(id, quantity, (product, qty) => { product.RemoveStock(qty); }, cancellationToken);
+        }
+
+        private async Task<bool> HandleStockWithRetries(int id, int quantity, Action<Product, int> stockOperation, CancellationToken cancellationToken)
+        {
             const int maxRetries = 3;
             var retries = 0;
             var delayMs = 100;
@@ -73,7 +84,7 @@ namespace Infrastructure.DataBase.Repositories.Products
                 if (product == null)
                     return false;
 
-                product.AddStock(quantity);
+                stockOperation(product, quantity);
                 DbSet.Update(product);
 
                 try

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Application.Products.Commands;
+using Application.Products.Commands.Handlers;
 using Application.Products.Queries;
 using Application.Products.Queries.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -80,13 +81,54 @@ namespace UnitTests.Products
                             services.Remove(updateProductDescriptor);
 
                         var updateProductMock = Substitute.For<ICommandHandler<UpdateProductCommand, int>>();
+                        
                         // Success for product id 1
                         updateProductMock.Handle(Arg.Is<UpdateProductCommand>(c => c.Id == 1), Arg.Any<CancellationToken>())
                             .Returns(Task.FromResult(Result<int>.Success(1)));
+                        
                         // Not found for product id 99
                         updateProductMock.Handle(Arg.Is<UpdateProductCommand>(c => c.Id == 99), Arg.Any<CancellationToken>())
                             .Returns(Task.FromResult(Result<int>.Failure("Product 99 not found")));
+                        
                         services.AddSingleton(updateProductMock);
+
+                        // Mock AddStockCommand handler
+                        var addStockDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(ICommandHandler<AddStockCommand, int>));
+                        if (addStockDescriptor != null)
+                            services.Remove(addStockDescriptor);
+
+                        var addStockMock = Substitute.For<ICommandHandler<AddStockCommand, int>>();
+                        
+                        // Success for product id 1
+                        addStockMock.Handle(Arg.Is<AddStockCommand>(c => c.Id == 1 && c.Quantity > 0), Arg.Any<CancellationToken>())
+                            .Returns(Task.FromResult(Result<int>.Success(1)));
+                        
+                        // Not found for product id 999999
+                        addStockMock.Handle(Arg.Is<AddStockCommand>(c => c.Id == 999999), Arg.Any<CancellationToken>())
+                            .Returns(Task.FromResult(Result<int>.Failure("Product 999999 not found")));
+                        
+                        // Bad request for invalid quantity
+                        addStockMock.Handle(Arg.Is<AddStockCommand>(c => c.Quantity <= 0), Arg.Any<CancellationToken>())
+                            .Returns(Task.FromResult(Result<int>.Failure("Invalid quantity")));
+                        services.AddSingleton(addStockMock);
+
+                        // Mock ReductionProductStockCommand handler
+                        var reductionProductStockDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(ICommandHandler<ReductionProductStockCommand, int>));
+                        if (reductionProductStockDescriptor != null)
+                            services.Remove(reductionProductStockDescriptor);
+
+                        var reductionProductStockMock = Substitute.For<ICommandHandler<ReductionProductStockCommand, int>>();
+                        reductionProductStockMock.Handle(Arg.Any<ReductionProductStockCommand>(), Arg.Any<CancellationToken>())
+                            .Returns(call => {
+                                var cmd = call.Arg<ReductionProductStockCommand>();
+                                return cmd.Id switch
+                                {
+                                    123 => Task.FromResult(Result<int>.Success(123)),
+                                    999 => Task.FromResult(Result<int>.Failure($"Product {cmd.Id} not found")),
+                                    _ => Task.FromResult(Result<int>.Failure("Concurrency conflict"))
+                                };
+                            });
+                        services.AddSingleton(reductionProductStockMock);
                     });
                 });
             Client = Factory.CreateClient();
@@ -252,53 +294,23 @@ namespace UnitTests.Products
         [Fact]
         public async Task AddStock_ReturnsNoContent_OnValidRequest()
         {
-            // Arrange: create product
-            var createRequest = new CreateProductCommand
-            {
-                Name = "StockTest",
-                Description = "For stock add test",
-                Price = 10.0m,
-                Stock = 5
-            };
-            var createResponse = await _client.PostAsJsonAsync("/api/v1/products", createRequest);
-            var content = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
-            var productId = content.GetProperty("id").GetInt32();
-
-            // Act: add stock
-            var addStockRequest = new AddStockCommand { Quantity = 3 };
-            var stockResponse = await _client.PostAsJsonAsync($"/api/v1/products/{productId}/stock", addStockRequest);
-
-            // Assert
+            var addStockRequest = new AddStockCommand { Id = 1, Quantity = 3 };
+            var stockResponse = await _client.PostAsJsonAsync($"/api/v1/products/1/stock", addStockRequest);
             Assert.Equal(HttpStatusCode.NoContent, stockResponse.StatusCode);
         }
 
         [Fact]
         public async Task AddStock_ReturnsBadRequest_OnInvalidQuantity()
         {
-            // Arrange: create product
-            var createRequest = new CreateProductCommand
-            {
-                Name = "StockTestInvalid",
-                Description = "For stock add test",
-                Price = 10.0m,
-                Stock = 5
-            };
-            var createResponse = await _client.PostAsJsonAsync("/api/v1/products", createRequest);
-            var content = await createResponse.Content.ReadFromJsonAsync<JsonElement>();
-            var productId = content.GetProperty("id").GetInt32();
-
-            // Act: add invalid stock
-            var addStockRequest = new AddStockCommand { Quantity = 0 };
-            var stockResponse = await _client.PostAsJsonAsync($"/api/v1/products/{productId}/stock", addStockRequest);
-
-            // Assert
+            var addStockRequest = new AddStockCommand { Id = 1, Quantity = 0 };
+            var stockResponse = await _client.PostAsJsonAsync($"/api/v1/products/1/stock", addStockRequest);
             Assert.Equal(HttpStatusCode.BadRequest, stockResponse.StatusCode);
         }
 
         [Fact]
         public async Task AddStock_ReturnsNotFound_WhenProductDoesNotExist()
         {
-            var addStockRequest = new AddStockCommand { Quantity = 2 };
+            var addStockRequest = new AddStockCommand { Id = 999999, Quantity = 2 };
             var stockResponse = await _client.PostAsJsonAsync($"/api/v1/products/999999/stock", addStockRequest);
             Assert.Equal(HttpStatusCode.NotFound, stockResponse.StatusCode);
         }
