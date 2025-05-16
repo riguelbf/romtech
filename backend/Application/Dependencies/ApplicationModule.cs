@@ -47,6 +47,7 @@ public static class ApplicationModule
         
         services.AddScoped<CreateProductHandler>();
         services.AddScoped<UpdateProductCommandHandler>();
+        services.AddScoped<DeleteProductCommandHandler>();
         
         return services;
     }

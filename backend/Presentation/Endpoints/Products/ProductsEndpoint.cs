@@ -126,5 +126,20 @@ public class ProductsEndpoint : IEndpoint
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status404NotFound);
+
+        app.MapDelete("/api/v{version:apiVersion}/products/{id:int}", async (
+            int id,
+            [FromServices] DeleteProductCommandHandler handler,
+            CancellationToken cancellationToken) =>
+        {
+            var result = await handler.Handle(new DeleteProductCommand(id), cancellationToken);
+            return result.IsSuccess ? Results.NoContent() : Results.NotFound();
+        })
+        .WithName("DeleteProduct")
+        .WithTags("Products")
+        .WithSummary("Soft delete a product by ID.")
+        .WithDescription("Soft-deletes a product by setting its IsDeleted flag to true. Returns 204 if successful, 404 if not found or already deleted.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound);
     }
 }
