@@ -1,8 +1,8 @@
+using Domain.Products;
 using Infrastructure.DataBase.Repositories.Products;
 using SharedKernel;
-using Domain.Products;
 
-namespace Application.Products.Commands;
+namespace Application.Products.Commands.Handlers;
 
 public class CreateProductHandler : ICommandHandler<CreateProductCommand, int>
 {
