@@ -1,3 +1,5 @@
+using FluentValidation;
+using Presentation.Endpoints.Products.Validators;
 
 namespace Presentation.Dependencies;
 
@@ -5,10 +7,18 @@ public static class PresentationModule
 {
     public static IServiceCollection AddPresentationModule(this IServiceCollection services)
     {
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen();
-        services.AddProblemDetails();
+        services
+            .AddEndpointsApiExplorer()
+            .AddSwaggerGen()
+            .AddProblemDetails()
+            .AddValidators();
 
+        return services;
+    }
+
+    private static IServiceCollection AddValidators(this IServiceCollection services)
+    {
+        services.AddValidatorsFromAssemblyContaining<GetProductsQueryValidator>();
         return services;
     }
 }
