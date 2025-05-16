@@ -60,7 +60,11 @@ public class ProductsEndpoint : IEndpoint
             }
 
             var result = await handler.Handle(query, CancellationToken.None);
-            return !result.IsSuccess ? Results.NotFound(result.Error) : Results.Ok(result.Value);
+            
+            if (!result.IsSuccess || result.Value is null || result.Value.Id <= 0)
+                return Results.NotFound(result.Error ?? "Product not found");
+            
+            return Results.Ok(result.Value);
         })
         .WithName("GetProductById")
         .WithTags("Products")
