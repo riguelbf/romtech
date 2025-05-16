@@ -20,6 +20,7 @@ public static class PresentationModule
     {
         services.AddValidatorsFromAssemblyContaining<GetProductsQueryValidator>();
         services.AddValidatorsFromAssemblyContaining<GetProductByIdQueryValidator>();
+        services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>();
 
         return services;
     }

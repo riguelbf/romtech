@@ -1,3 +1,4 @@
+using Application.Products.Commands;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application.Dependencies;
@@ -15,7 +16,9 @@ public static class ApplicationModule
     /// <returns>The updated IServiceCollection.</returns>
     public static IServiceCollection AddApplicationModule(this IServiceCollection services)
     {
-        services.AddQueryHandlers();
+        services
+            .AddQueryHandlers()
+            .AddCommandHandlers();
         
         return services;
     }
@@ -31,6 +34,18 @@ public static class ApplicationModule
             .AddClasses(classes => classes.AssignableTo(typeof(Products.Queries.IQueryHandler<,>)), publicOnly: false)
             .AsImplementedInterfaces()
             .WithScopedLifetime());
+        
+        return services;
+    }
+    
+    private static IServiceCollection AddCommandHandlers(this IServiceCollection services)
+    {
+        services.Scan(scan => scan.FromAssembliesOf(typeof(ApplicationModule))
+            .AddClasses(classes => classes.AssignableTo(typeof(Products.Commands.ICommandHandler<,>)), publicOnly: false)
+            .AsImplementedInterfaces()
+            .WithScopedLifetime());
+        
+        services.AddScoped<CreateProductHandler>();
         
         return services;
     }

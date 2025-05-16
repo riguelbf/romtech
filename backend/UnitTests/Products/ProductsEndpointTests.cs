@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using Application.Products.Commands;
 using Application.Products.Queries;
 using Application.Products.Queries.Dtos;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -104,6 +106,38 @@ namespace UnitTests.Products
         {
             var client = _factory.CreateClient();
             var response = await client.GetAsync("/api/v1/products/0");
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreateProduct_ReturnsCreated_OnValidRequest()
+        {
+            var client = _factory.CreateClient();
+            var request = new CreateProductCommand
+            {
+                Name = "Test Product",
+                Description = "Test Description",
+                Price = 10.99m,
+                Stock = 5
+            };
+            var response = await client.PostAsJsonAsync("/api/v1/products", request);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            var content = await response.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.True(content.TryGetProperty("id", out var idElement));
+            Assert.Equal(JsonValueKind.Number, idElement.ValueKind);
+        }
+
+        [Fact]
+        public async Task CreateProduct_ReturnsBadRequest_OnInvalidRequest()
+        {
+            var client = _factory.CreateClient();
+            var request = new CreateProductCommand
+            {
+                Name = "",
+                Price = -1,
+                Stock = -5
+            };
+            var response = await client.PostAsJsonAsync("/api/v1/products", request);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
