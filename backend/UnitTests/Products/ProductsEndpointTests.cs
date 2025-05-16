@@ -78,9 +78,33 @@ namespace UnitTests.Products
         {
             var client = _factory.CreateClient();
             return Task.CompletedTask;
-            // You'd need to simulate a server error, possibly by mocking dependencies
-            // This is a placeholder for demonstration
-            // Assert.True(response.StatusCode == HttpStatusCode.InternalServerError);
+        }
+
+        [Fact]
+        public async Task GetProductById_ReturnsOk_WhenProductExists()
+        {
+            var client = _factory.CreateClient();
+            var response = await client.GetAsync("/api/v1/products/1");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var result = await response.Content.ReadFromJsonAsync<ProductResponse>();
+            Assert.NotNull(result);
+            Assert.Equal(1, result.Id);
+        }
+
+        [Fact]
+        public async Task GetProductById_ReturnsNotFound_WhenProductDoesNotExist()
+        {
+            var client = _factory.CreateClient();
+            var response = await client.GetAsync("/api/v1/products/9999");
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetProductById_ReturnsBadRequest_OnInvalidId()
+        {
+            var client = _factory.CreateClient();
+            var response = await client.GetAsync("/api/v1/products/0");
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
 }
