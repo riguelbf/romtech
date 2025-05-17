@@ -1,35 +1,35 @@
 version: '3.8'
 
 services:
-#  frontend:
-#    build:
-#      context: ./frontend
-#      dockerfile: Dockerfile
-#    ports:
-#      - "5173:5173"
-#    depends_on:
-#      - backend
-#    environment:
-#      - VITE_BACKEND_URL=http://backend:5053
-#    networks:
-#      - app-network
-#
-#  backend:
-#    build:
-#      context: ./backend
-#      dockerfile: Dockerfile
-#    ports:
-#      - "5053:5053"
-#    depends_on:
-#      - postgres
-#    environment:
-#      - ASPNETCORE_ENVIRONMENT=Development
-#      - DOTNET_USE_POLLING_FILE_WATCHER=1
-#      - ASPNETCORE_URLS=http://0.0.0.0:5053
-#      - CONNECTION_STRING=Host=postgres;Port=5432;Database=appdb;Username=postgres;Password=postgres;
-#      - RUN_MIGRATIONS=true
-#    networks:
-#      - app-network
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    environment:
+      - VITE_BACKEND_URL=http://backend:5053
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5053:5053"
+    depends_on:
+      - postgres
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+      - ASPNETCORE_URLS=http://0.0.0.0:5053
+      - CONNECTION_STRING=Host=postgres;Port=5432;Database=appdb;Username=postgres;Password=postgres;
+      - RUN_MIGRATIONS=true
+    networks:
+      - app-network
 
   postgres:
     image: postgres:15
