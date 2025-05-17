@@ -3,7 +3,7 @@ export function Loader({ hasMore, loading, loader }:
   return (
     <div
       ref={loader}
-      className="flex justify-center items-center gap-2 py-6 rounded-md bg-muted/90 border mt-4 text-sm text-muted-foreground"
+      className="flex justify-center items-center gap-2 py-6 rounded-md bg-zinc-700 border border-zinc-800 mt-4 text-sm text-white"
     >
       {hasMore ? (
         loading ? (
