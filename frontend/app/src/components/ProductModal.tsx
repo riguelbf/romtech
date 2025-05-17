@@ -1,7 +1,7 @@
 
 import React, {useEffect, useState} from 'react';
 import {type Product, updateProduct} from "../lib/api.ts";
-import { Dialog, DialogContent } from './ui/dialog.tsx';
+import {Dialog, DialogContent, DialogDescription, DialogTitle} from './ui/dialog.tsx';
 import {Input} from "./ui/input.tsx";
 import { Button } from './ui/button.tsx';
 
@@ -9,16 +9,16 @@ export function ProductModal({ product, open, onClose }: {
     product: Product | null;
     open: boolean;
     onClose: () => void;
-}) {
+}) {    
     const [form, setForm] = useState(product ?? { id: '', name: '', description: '', stock: 0, price: 0 });
-
-    if (!product) return null;
-
+    
     useEffect(() => {
         if (product) {
             setForm(product);
         }
     }, [product]);
+    
+    if (!product) return null;
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
         const { name, value } = e.target;
@@ -47,8 +47,9 @@ export function ProductModal({ product, open, onClose }: {
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="max-w-md w-full">
-                <h2 className="text-lg font-semibold mb-4">Edit Product</h2>
+            <DialogContent className="max-w-md w-full" aria-describedby="Product details">
+                <DialogDescription>Product details</DialogDescription>
+                <DialogTitle>Edit Product</DialogTitle>
                 <div className="space-y-4">
                     <Input name="name" value={form.name} onChange={handleChange} placeholder="Name" />
                     <Input name="description" value={form.description} onChange={handleChange} placeholder="Description" />
