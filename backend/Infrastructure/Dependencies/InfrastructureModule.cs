@@ -56,9 +56,9 @@ public static class InfrastructureModule
 
     private static IServiceCollection ApplyMigrations(this IServiceCollection services)
     {
-        var environment = services.BuildServiceProvider().GetRequiredService<IWebHostEnvironment>();
+        var runMigrations = Environment.GetEnvironmentVariable("RUN_MIGRATIONS");
 
-        if (!environment.IsDevelopment()) return services;
+        if (!string.Equals(runMigrations, "true", StringComparison.OrdinalIgnoreCase)) return services;
         
         using var serviceProvider = services.BuildServiceProvider();
         var dbContext = serviceProvider.GetRequiredService<ApplicationDbContext>();
