@@ -5,10 +5,13 @@ import {Dialog, DialogContent, DialogDescription, DialogTitle} from './ui/dialog
 import {Input} from "./ui/input.tsx";
 import { Button } from './ui/button.tsx';
 
-export function ProductModal({ product, open, onClose }: {
+import { toast } from 'react-toastify';
+
+export function ProductModal({ product, open, onClose, onCallback }: {
     product: Product | null;
     open: boolean;
     onClose: () => void;
+    onCallback: () => void;
 }) {    
     const [form, setForm] = useState(product ?? { id: '', name: '', description: '', stock: 0, price: 0 });
     
@@ -36,12 +39,17 @@ export function ProductModal({ product, open, onClose }: {
             }
             
             await updateProduct(productUpdated);
-            alert('✅ Product updated successfully');
-            onClose();
             
-            window.location.reload();
+            toast.success('Product saved successfully!', {
+                autoClose: 2000,               
+            });
+
+            onCallback();
+
+            onClose();
         } catch (err) {
             console.error('Error updating product:', err);
+            toast.error('Error saving product!');
         }
     }
 

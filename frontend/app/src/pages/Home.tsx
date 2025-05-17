@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {ColumnDef} from "@tanstack/react-table";
 import {getProducts, type PaginatedProductResponse, type Product} from '../lib/api';
 import {Button} from "../components/ui/button.tsx";
@@ -14,6 +14,14 @@ export function Home() {
     const [hasMore, setHasMore] = useState(true);
     const loader = useRef<HTMLDivElement | null>(null);
 
+    const refreshTable = useCallback(() => {
+        getProducts(page).then((response: PaginatedProductResponse) => {
+            setProducts((prev: Product[]): Product[] => [...prev, ...response.items]);
+            setHasMore(products.length + response.items.length < response.totalCount);
+            setLoading(false);
+        });
+    }, [page, products, setProducts, setHasMore, setLoading]);
+
     useEffect(() => {
         const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
             const entry: IntersectionObserverEntry = entries[0];
@@ -25,18 +33,20 @@ export function Home() {
             observer.observe(loader.current);
         }
         return () => observer.disconnect();
-    }, [loading]);
-
+    }, [hasMore, loading]);
+    
     useEffect(() => {
+        console.log('useEffect triggered');
         setLoading(true);
-        getProducts(page).then((response: PaginatedProductResponse) => {
-            setProducts((prev: Product[]): Product[] => [...prev, ...response.items]);
-            setHasMore(products.length + response.items.length < response.totalCount);
-            setLoading(false);
-        });
-    }, [page]);
+        refreshTable();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [page]);
 
     const columns: ColumnDef<Product>[] = [
+        {
+            accessorKey: 'id',
+            header: 'Code',
+        },
         {
             accessorKey: 'name',
             header: 'Name',
@@ -74,7 +84,12 @@ export function Home() {
         <div className="p-4">
             <h1 className="text-xl font-semibold mb-4">Inventory</h1>
             <DataTable columns={columns} data={products} />
-            <ProductModal product={selected} open={open} onClose={() => setOpen(false)} />
+            <ProductModal 
+                product={selected} 
+                open={open} 
+                onClose={() => setOpen(false)} 
+                onCallback={() => refreshTable()} 
+            />
             <div ref={loader} className="text-center py-4 text-sm text-muted-foreground">
                 {hasMore ? (loading ? 'Loading more products...' : 'Scroll down to load more') : 'No more products to load'}
             </div>
