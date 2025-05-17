@@ -3,7 +3,6 @@
 ## Overview
 This project is a full-stack application built using a backend in C# and a frontend in React. The project aims to provide an inventory management system.
 
-## Summary
 This project provides a comprehensive inventory management system that allows users to manage products, track stock levels, and handle pricing. It features a user-friendly interface built with [React](https://reactjs.org/) and a robust backend developed in [C#](https://docs.microsoft.com/en-us/dotnet/csharp/). The application is designed to be easily deployable using [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/), facilitating a smooth development and production experience. It features a user-friendly interface built with React and a robust backend developed in C#. The application is designed to be easily deployable using Docker and Docker Compose, facilitating a smooth development and production experience.
 
 ### Prerequisites
@@ -18,6 +17,10 @@ This project provides a comprehensive inventory management system that allows us
 - Add cache
 - Optimize database queries for performance.
 - Enhance the user interface for better UX.
+
+## Development Environment
+This project uses a dev-container to make development easier. It ensures that everyone has the same setup, which helps avoid issues. For more information, check out the [dev-container documentation](https://code.visualstudio.com/docs/remote/containers).
+
 
 ### Running the Application with Docker Compose
 1. Clone the repository:
