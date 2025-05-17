@@ -46,8 +46,11 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
+        var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+        
         policy
-            .WithOrigins("http://localhost:5173") // frontend Vite
+            .WithOrigins(frontendUrl ?? string.Empty)
+            .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader();
     });
