@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ProductModal } from "../features/products/components/ProductModal.tsx";
 import { ProductDataTable } from '../features/products/components/ProductDataTable.tsx';
-import { getProducts } from '../features/api/products.api.ts';
+import { getProducts, updateProduct } from '../features/api/products.api.ts';
 import type { PaginatedProductResponse, Product } from '../features/types.ts';
 import { Loader } from '../features/products/components/Loader.tsx';
 
@@ -60,6 +60,7 @@ export function Home() {
                 open={open}
                 onClose={() => setOpen(false)}
                 onCallback={() => refreshTable()}
+                onSubmit={updateProduct}
             />
             <Loader
                 hasMore={hasMore}
