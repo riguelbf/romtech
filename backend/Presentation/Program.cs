@@ -23,6 +23,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 Env.Load();
 
+builder.WebHost.UseUrls("http://0.0.0.0:5053");
+
 builder.Host.UseSerilog();
 
 builder.Services.AddSwaggerGen();
@@ -46,8 +48,11 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
+        var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+        
         policy
-            .WithOrigins("http://localhost:5173") // frontend Vite
+            .WithOrigins(frontendUrl ?? string.Empty)
+            .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader();
     });
