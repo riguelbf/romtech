@@ -4,8 +4,8 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '../../../
 import { Input } from "../../../components/ui/input.tsx";
 import { Button } from '../../../components/ui/button.tsx';
 
-import { toast } from 'react-toastify';
 import type { Product } from '../../types.ts';
+import { toast } from 'react-toastify';
 
 export function ProductModal({ product, open, onClose, onCallback, onSubmit }: {
     product: Product | null;
