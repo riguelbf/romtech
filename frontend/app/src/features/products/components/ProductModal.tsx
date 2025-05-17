@@ -1,26 +1,27 @@
 
-import React, {useEffect, useState} from 'react';
-import {type Product, updateProduct} from "../lib/api.ts";
-import {Dialog, DialogContent, DialogDescription, DialogTitle} from './ui/dialog.tsx';
-import {Input} from "./ui/input.tsx";
-import { Button } from './ui/button.tsx';
+import React, { useEffect, useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '../../../components/ui/dialog.tsx';
+import { Input } from "../../../components/ui/input.tsx";
+import { Button } from '../../../components/ui/button.tsx';
 
+import type { Product } from '../../types.ts';
 import { toast } from 'react-toastify';
 
-export function ProductModal({ product, open, onClose, onCallback }: {
+export function ProductModal({ product, open, onClose, onCallback, onSubmit }: {
     product: Product | null;
     open: boolean;
     onClose: () => void;
     onCallback: () => void;
-}) {    
+    onSubmit: (product: Product) => Promise<void>;
+}) {
     const [form, setForm] = useState(product ?? { id: '', name: '', description: '', stock: 0, price: 0 });
-    
+
     useEffect(() => {
         if (product) {
             setForm(product);
         }
     }, [product]);
-    
+
     if (!product) return null;
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -37,11 +38,11 @@ export function ProductModal({ product, open, onClose, onCallback }: {
                 price: form.price,
                 stock: form.stock
             }
-            
-            await updateProduct(productUpdated);
-            
+
+            await onSubmit(productUpdated);
+
             toast.success('Product saved successfully!', {
-                autoClose: 2000,               
+                autoClose: 2000,
             });
 
             onCallback();

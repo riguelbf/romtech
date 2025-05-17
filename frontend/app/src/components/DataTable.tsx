@@ -6,7 +6,7 @@ import {
     getCoreRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from "./ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 
 
 
@@ -25,7 +25,7 @@ export function DataTable<TData, TValue>({ columns, data, }: DataTableProps<TDat
     return (
         <div className="rounded-md border dark:border-zinc-700 overflow-x-auto">
             <Table className="min-w-full [&>thead>tr]:bg-muted [&>tbody>tr:nth-child(even)]:bg-muted/50 [&>tbody>tr:hover]:bg-primary/5 transition-colors text-sm text-foreground dark:text-white">
-            <TableHeader>
+                <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
                         <TableRow key={headerGroup.id}>
                             {headerGroup.headers.map((header) => {
