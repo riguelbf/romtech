@@ -23,6 +23,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 Env.Load();
 
+builder.WebHost.UseUrls("http://0.0.0.0:5053");
+
 builder.Host.UseSerilog();
 
 builder.Services.AddSwaggerGen();

@@ -1,26 +1,29 @@
-# Use the official Node.js 20 image as a base
+# Use a imagem oficial do Node.js 20 como base
 FROM node:20
 
-# Set the working directory to /app
+# Defina o diretório de trabalho
 WORKDIR /app
 
-# Copy the package*.json files to the working directory
-COPY package*.json ./
+# Instale o pnpm usando Corepack
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Install the dependencies
+# Copie apenas arquivos de dependência primeiro para aproveitar o cache
+COPY app/package.json app/pnpm-lock.yaml ./
+
+# Instale dependências
 RUN pnpm install --frozen-lockfile
 
-# Copy the application code to the working directory
-COPY . .
+# Copie o restante do projeto
+COPY ./app .
 
-# Build the application
+# Construa a aplicação para produção
 RUN pnpm build
 
-# Expose the port that the application will use
+# Exponha a porta padrão do Vite
 EXPOSE 5173
 
-# Set the environment variable for Vite
-ENV VITE_NODE_VERSION 20
+# Configure o ambiente se necessário
+ENV VITE_NODE_VERSION=20
 
-# Run the command to start the development server
-CMD ["pnpm", "dev"]
+# Comando padrão: iniciar o Vite em modo dev (ou use preview para produção)
+CMD ["pnpm", "dev", "--host"]

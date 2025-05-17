@@ -13,6 +13,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 COPY --from=build /app/publish .
 
-EXPOSE 5000
-ENV ASPNETCORE_URLS=http://+:5000
+EXPOSE 5053
+ENV ASPNETCORE_URLS=http://0.0.0.0:5053
 ENTRYPOINT ["dotnet", "Presentation.dll"]
