@@ -1,9 +1,9 @@
 
 import React, {useEffect, useState} from 'react';
-import {type Product, updateProduct} from "../lib/api.ts";
-import {Dialog, DialogContent, DialogDescription, DialogTitle} from './ui/dialog.tsx';
-import {Input} from "./ui/input.tsx";
-import { Button } from './ui/button.tsx';
+import {type Product, updateProduct} from "../../api/products.api.ts";
+import {Dialog, DialogContent, DialogDescription, DialogTitle} from '../../../components/ui/dialog.tsx';
+import {Input} from "../../../components/ui/input.tsx";
+import { Button } from '../../../components/ui/button.tsx';
 
 import { toast } from 'react-toastify';
 

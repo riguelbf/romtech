@@ -1,9 +1,9 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
-import type {ColumnDef} from "@tanstack/react-table";
-import {getProducts, type PaginatedProductResponse, type Product} from '../lib/api';
-import {Button} from "../components/ui/button.tsx";
-import {ProductModal} from "../components/ProductModal.tsx";
-import { DataTable } from '../components/DataTable.tsx';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ProductModal } from "../features/products/components/ProductModal.tsx";
+import { ProductDataTable } from '../features/products/components/ProductDataTable.tsx';
+import { getProducts } from '../features/api/products.api.ts';
+import type { PaginatedProductResponse, Product } from '../features/types.ts';
+import { Loader } from '../features/products/components/Loader.tsx';
 
 export function Home() {
     const [products, setProducts] = useState<Product[]>([]);
@@ -34,65 +34,39 @@ export function Home() {
         }
         return () => observer.disconnect();
     }, [hasMore, loading]);
-    
+
     useEffect(() => {
         console.log('useEffect triggered');
         setLoading(true);
         refreshTable();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [page]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page]);
 
-    const columns: ColumnDef<Product>[] = [
-        {
-            accessorKey: 'id',
-            header: 'Code',
-        },
-        {
-            accessorKey: 'name',
-            header: 'Name',
-        },
-        {
-            accessorKey: 'description',
-            header: 'Description',
-        },
-        {
-            accessorKey: 'stock',
-            header: 'Stock',
-        },
-        {
-            accessorKey: 'price',
-            header: 'Price',
-            cell: ({ row }) => `$${row.original.price.toFixed(2)}`,
-        },
-        {
-            id: 'actions',
-            cell: ({ row }) => (
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                        setSelected(row.original);
-                        setOpen(true);
-                    }}>
-                    Edit
-                </Button>
-            ),
-        },
-    ];
+
+    function handleEditProduct(row: Product) {
+        setSelected(row);
+        setOpen(true);
+    }
 
     return (
         <div className="p-4">
             <h1 className="text-xl font-semibold mb-4">Inventory</h1>
-            <DataTable columns={columns} data={products} />
-            <ProductModal 
-                product={selected} 
-                open={open} 
-                onClose={() => setOpen(false)} 
-                onCallback={() => refreshTable()} 
+            <ProductDataTable
+                onEditProduct={handleEditProduct}
+                data={products}
             />
-            <div ref={loader} className="text-center py-4 text-sm text-muted-foreground">
-                {hasMore ? (loading ? 'Loading more products...' : 'Scroll down to load more') : 'No more products to load'}
-            </div>
+            <ProductModal
+                product={selected}
+                open={open}
+                onClose={() => setOpen(false)}
+                onCallback={() => refreshTable()}
+            />
+            <Loader
+                hasMore={hasMore}
+                loading={loading}
+                loader={loader}
+            />
         </div>
     );
 }
+

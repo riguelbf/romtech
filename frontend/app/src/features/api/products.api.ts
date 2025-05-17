@@ -1,17 +1,4 @@
-export type Product = {
-    id: number
-    name: string
-    description: string
-    price: number
-    stock: number
-}
-
-export type PaginatedProductResponse = {
-    items: Product[]
-    totalCount: number
-    pageNumber: number
-    pageSize: number
-}
+import type { PaginatedProductResponse, Product } from "../types";
 
 export async function getProducts(pageNumber: number, pageSize = 2): Promise<PaginatedProductResponse> {
     try {
