@@ -14,13 +14,27 @@ export function Home() {
     const [hasMore, setHasMore] = useState(true);
     const loader = useRef<HTMLDivElement | null>(null);
 
-    const refreshTable = useCallback(() => {
+    const loadNextPage = useCallback(() => {
+        setLoading(true);
         getProducts(page).then((response: PaginatedProductResponse) => {
-            setProducts((prev: Product[]): Product[] => [...prev, ...response.items]);
-            setHasMore(products.length + response.items.length < response.totalCount);
+            setProducts(prev => {
+                const newProducts = [...prev, ...response.items];
+
+                const unique = new Map(newProducts.map(p => [p.id, p]));
+                const deduped = Array.from(unique.values());
+
+                setHasMore(deduped.length < response.totalCount);
+                return deduped;
+            });
             setLoading(false);
         });
-    }, [page, products, setProducts, setHasMore, setLoading]);
+    }, [page]);
+
+
+    const refreshProduct = useCallback(async (updated: Product) => {
+        await updateProduct(updated);
+        setProducts(prev => prev.map(p => (p.id === updated.id ? updated : p)));        
+    }, []);
 
     useEffect(() => {
         const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
@@ -36,11 +50,11 @@ export function Home() {
     }, [hasMore, loading]);
 
     useEffect(() => {
-        console.log('useEffect triggered');
-        setLoading(true);
-        refreshTable();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [page]);
+        if (hasMore && !loading) {
+            loadNextPage();
+        }
+    }, [page, loadNextPage]);
+
 
 
     function handleEditProduct(row: Product) {
@@ -59,8 +73,7 @@ export function Home() {
                 product={selected}
                 open={open}
                 onClose={() => setOpen(false)}
-                onCallback={() => refreshTable()}
-                onSubmit={updateProduct}
+                onSubmit={refreshProduct}
             />
             <Loader
                 hasMore={hasMore}
