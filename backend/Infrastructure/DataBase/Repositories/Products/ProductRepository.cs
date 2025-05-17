@@ -26,7 +26,14 @@ namespace Infrastructure.DataBase.Repositories.Products
             var baseFilter = (Expression<Func<Product, bool>>)(p => !p.IsDeleted);
             var query = filter != null ? DbSet.Where(baseFilter).Where(filter) : DbSet.Where(baseFilter);
             var totalCount = await query.CountAsync();
-            var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+           
+            var items = await query
+                .OrderBy(p => p.Id)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .AsNoTracking()
+                .ToListAsync();
+            
             return (items, totalCount);
         }
 

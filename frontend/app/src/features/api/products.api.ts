@@ -1,9 +1,9 @@
 import type { PaginatedProductResponse, Product } from "../types";
 const apiUrl = import.meta.env.VITE_API_URL;
 
-export async function getProducts(pageNumber: number, pageSize = 2): Promise<PaginatedProductResponse> {
+export async function getProducts(pageNumber: number = 1, pageSize = 5): Promise<PaginatedProductResponse> {
     try {
-        const res = await fetch(`${apiUrl}/v1/products?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+        const res = await fetch(`${apiUrl}/api/v1/products?pageNumber=${pageNumber}&pageSize=${pageSize}`);
         
         if (!res.ok) { 
             throw new Error(`Error fetching products: ${res.status} ${res.statusText}`);
