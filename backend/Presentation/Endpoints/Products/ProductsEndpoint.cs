@@ -3,18 +3,19 @@ using Application.Products.Commands.Handlers;
 using Application.Products.Queries;
 using Application.Products.Queries.Dtos;
 using FluentValidation;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SharedKernel.Queries;
 
 namespace Presentation.Endpoints.Products;
 
-public class ProductsEndpoint : IEndpoint
+public class ProductsEndpoint : EndpointBase
 {
     /// <summary>
     /// Maps the endpoint for retrieving products.
     /// </summary>
     /// <param name="app">The endpoint route builder to configure the routes.</param>
-    public void MapEndpoint(IEndpointRouteBuilder app)
+    public override void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapGet("/api/v{version:apiVersion}/products", async (
                 [AsParameters] GetProductsQuery query,
@@ -23,11 +24,8 @@ public class ProductsEndpoint : IEndpoint
         {
             query.Normalize();
 
-            var validationResult = await validator.ValidateAsync(query);
-            if (!validationResult.IsValid)
-            {
-                return Results.BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
-            }
+            var (requestIsValid, validationResult) = await ValidateRequestAsync(query, validator);
+            if (!requestIsValid) return validationResult;
 
             var result = await handler.Handle(query, CancellationToken.None);
             return result.IsSuccess ? Results.Ok(result.Value) : Results.Problem(result.Error);
@@ -54,12 +52,10 @@ public class ProductsEndpoint : IEndpoint
             [FromServices] IQueryHandler<GetProductByIdQuery, ProductResponse> handler) =>
         {
             var query = new GetProductByIdQuery(id);
-            var validationResult = await validator.ValidateAsync(query);
-            if (!validationResult.IsValid)
-            {
-                return Results.BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
-            }
-
+            
+            var (requestIsValid, validationResult) = await ValidateRequestAsync(query, validator);
+            if (!requestIsValid)return validationResult;
+            
             var result = await handler.Handle(query, CancellationToken.None);
             
             if (!result.IsSuccess || result.Value is null || result.Value.Id <= 0)
@@ -82,12 +78,9 @@ public class ProductsEndpoint : IEndpoint
             [FromServices] CreateProductHandler handler,
             CancellationToken cancellationToken) =>
         {
-            var validationResult = await validator.ValidateAsync(command, cancellationToken);
-            if (!validationResult.IsValid)
-            {
-                return Results.BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
-            }
-
+            var (requestIsValid, validationResult) = await ValidateRequestAsync(command, validator);
+            if (!requestIsValid)return validationResult;
+           
             var result = await handler.Handle(command, cancellationToken);
             
             return !result.IsSuccess ? Results.Problem(result.Error) : Results.Created($"/api/v1/products/{result.Value}", new { id = result.Value });
@@ -107,10 +100,8 @@ public class ProductsEndpoint : IEndpoint
             [FromServices] UpdateProductCommandHandler handler,
             CancellationToken cancellationToken) =>
         {
-            var validationResult = await validator.ValidateAsync(command, cancellationToken);
-            
-            if (!validationResult.IsValid)
-                return Results.BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
+            var (requestIsValid, validationResult) = await ValidateRequestAsync(command, validator);
+            if (!requestIsValid)return validationResult;
             
             if(id != command.Id) return Results.BadRequest("Id mismatch");
 
@@ -145,11 +136,15 @@ public class ProductsEndpoint : IEndpoint
 
         app.MapPost($"/api/v{{version:apiVersion}}/products/{{id:int}}/stock", async (
                 int id,
+                [FromServices] IValidator<AddStockCommand> validator,
                 [FromBody] AddStockCommand command,
                 [FromServices] AddStockCommandHandler handler,
                 CancellationToken cancellationToken) =>
             {
                 command.Id = id;
+                
+                var (requestIsValid, validationResult) = await ValidateRequestAsync(command, validator);
+                if (!requestIsValid) return validationResult;
 
                 var result = await handler.Handle(command, cancellationToken);
 
@@ -168,11 +163,16 @@ public class ProductsEndpoint : IEndpoint
 
         app.MapDelete($"/api/v{{version:apiVersion}}/products/{{id:int}}/stock", async (
                 int id,
+                [FromServices] IValidator<ReductionProductStockCommand> validator,
                 [FromBody] ReductionProductStockCommand command,
                 [FromServices] ReductionProductStockCommandHandler handler,
                 CancellationToken cancellationToken) =>
             {
                 command.Id = id;
+                
+                var (requestIsValid, validationResult) = await ValidateRequestAsync(command, validator);
+                if (!requestIsValid) return validationResult;
+                
                 var result = await handler.Handle(command, cancellationToken);
                 
                 if (result.IsSuccess)
