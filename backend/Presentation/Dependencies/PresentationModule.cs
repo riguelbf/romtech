@@ -24,6 +24,7 @@ public static class PresentationModule
         services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>();
         services.AddValidatorsFromAssemblyContaining<UpdateProductCommandtValidator>();
         services.AddValidatorsFromAssemblyContaining<AddStockCommandValidator>();
+        services.AddValidatorsFromAssemblyContaining<ReductionProductStockCommandValidator>();
 
         return services;
     }
